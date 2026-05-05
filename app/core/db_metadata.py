@@ -38,6 +38,7 @@ def enum_check_constraint(column: str, enum_class: type[Enum]) -> str:
         class Status(str, Enum):
             ACTIVE = "active"
             INACTIVE = "inactive"
+            testtt
 
         enum_check_constraint("status", Status)
         # → "status IN ('active', 'inactive')"

@@ -9,12 +9,13 @@ def utcnow() -> datetime:
 
 
 class TimestampMixin:
-    created_at: datetime = Field(  # type: ignore[call-arg]
+    created_at: datetime = Field(  # type: ignore
         default_factory=utcnow,
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={"nullable": False},
     )
-    updated_at: datetime = Field(  # type: ignore[call-arg]
+
+    updated_at: datetime = Field(  # type: ignore
         default_factory=utcnow,
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={"nullable": False, "onupdate": utcnow},
@@ -22,7 +23,7 @@ class TimestampMixin:
 
 
 class CreatedAtMixin:
-    created_at: datetime = Field(  # type: ignore[call-arg]
+    created_at: datetime = Field(  # type: ignore
         default_factory=utcnow,
         sa_type=DateTime(timezone=True),
         sa_column_kwargs={"nullable": False},

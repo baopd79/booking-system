@@ -1,0 +1,59 @@
+# Pre-commit hooks — chạy tự động trước mỗi `git commit`.
+#
+# Setup lần đầu:
+#   uv run pre-commit install
+#   uv run pre-commit install --hook-type commit-msg  # cho conventional commit check
+#
+# Run thủ công (test trước khi commit):
+#   uv run pre-commit run --all-files
+
+repos:
+  # ===== Built-in hooks =====
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: detect-private-key  # tránh leak SSH key vào repo
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  # ===== Ruff (lint + format) =====
+  # Phải chạy SAU built-in hooks vì ruff format có thể conflict với end-of-file-fixer
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  # ===== Conventional commit message =====
+  # Enforce format: <type>(<scope>): <subject>
+  # Type: feat | fix | docs | style | refactor | test | chore | ci | perf | build | revert
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.6.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - feat
+          - fix
+          - docs
+          - style
+          - refactor
+          - test
+          - chore
+          - ci
+          - perf
+          - build
+          - revert
+
+# CI sẽ skip pre-commit (CI chạy ruff/test riêng — tránh duplicate)
+ci:
+  skip: [conventional-pre-commit]

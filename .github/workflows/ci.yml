@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel run cũ khi push commit mới lên cùng branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===== Job 1: Lint (chạy nhanh, fail sớm) =====
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.5.4"
+          enable-cache: true
+
+      - name: Setup Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Ruff check
+        run: uv run ruff check app/ tests/
+
+      - name: Ruff format check
+        run: uv run ruff format --check app/ tests/
+
+      # mypy không fail CI ở MVP (Phase HARDEN sẽ enforce)
+      - name: Mypy (non-blocking)
+        run: uv run mypy app/ || true
+        continue-on-error: true
+
+  # ===== Job 2: Test =====
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint  # Chỉ chạy test khi lint pass
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: booking
+          POSTGRES_PASSWORD: booking
+          POSTGRES_DB: booking_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U booking"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://booking:booking@localhost:5432/booking_test
+      DATABASE_URL_SYNC: postgresql+psycopg2://booking:booking@localhost:5432/booking_test
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET_KEY: test_secret_must_be_at_least_32_chars_long_xxx
+      APP_ENV: development
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.5.4"
+          enable-cache: true
+
+      - name: Setup Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run migrations
+        run: uv run alembic upgrade head
+
+      - name: Run tests
+        run: uv run pytest -v --cov=app --cov-report=term --cov-report=xml
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7
+
+  # ===== Job 3: Docker build (verify image build OK) =====
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: booking-system:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

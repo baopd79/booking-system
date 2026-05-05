@@ -1,0 +1,63 @@
+[project]
+name = "booking-system"
+version = "0.1.0"
+description = "Sports court booking system with concurrency control"
+requires-python = ">=3.12"
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    # ORM & DB
+    "sqlmodel>=0.0.22",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "psycopg2-binary>=2.9.10",  # Alembic dùng sync driver cho migration
+    # Validation & settings
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "email-validator>=2.2.0",
+    # Auth
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt==4.0.1",  # passlib chưa support bcrypt 4.1+
+    # Redis
+    "redis>=5.2.0",
+    # HTTP client (gọi VNPay)
+    "httpx>=0.28.0",
+    # Email
+    "aiosmtplib>=3.0.2",
+    "jinja2>=3.1.4",
+    # Utilities
+    "python-multipart>=0.0.17",  # form data parsing
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.28.0",  # cho TestClient
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "faker>=33.0.0",
+    "pre-commit>=4.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]
+ignore = ["E501"]  # line-too-long, ruff format sẽ tự xử
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true

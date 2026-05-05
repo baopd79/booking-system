@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import Column, DateTime
+from sqlalchemy import DateTime
 from sqlmodel import Field
 
 
@@ -8,27 +8,22 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-def created_at_col():
-    return Column(
-        DateTime(timezone=True),
-        default=utcnow,
-        nullable=False,
-    )
-
-
-def updated_at_col():
-    return Column(
-        DateTime(timezone=True),
-        default=utcnow,
-        onupdate=utcnow,
-        nullable=False,
-    )
-
-
 class TimestampMixin:
-    created_at: datetime = Field(sa_column=created_at_col())
-    updated_at: datetime = Field(sa_column=updated_at_col())
+    created_at: datetime = Field(  # type: ignore[call-arg]
+        default_factory=utcnow,
+        sa_type=DateTime(timezone=True),
+        sa_column_kwargs={"nullable": False},
+    )
+    updated_at: datetime = Field(  # type: ignore[call-arg]
+        default_factory=utcnow,
+        sa_type=DateTime(timezone=True),
+        sa_column_kwargs={"nullable": False, "onupdate": utcnow},
+    )
 
 
 class CreatedAtMixin:
-    created_at: datetime = Field(sa_column=created_at_col())
+    created_at: datetime = Field(  # type: ignore[call-arg]
+        default_factory=utcnow,
+        sa_type=DateTime(timezone=True),
+        sa_column_kwargs={"nullable": False},
+    )

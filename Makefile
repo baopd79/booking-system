@@ -31,6 +31,16 @@ up:
 down:
 	docker compose down
 
+start:
+	docker compose start
+	@echo "✅ Stack started. App: http://localhost:8000/docs"
+
+stop:
+	docker compose stop
+
+fastapilocal:
+	uv run uvicorn app.main:app --reload --env-file .env.local
+
 logs:
 	docker compose logs -f app
 

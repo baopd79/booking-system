@@ -16,19 +16,19 @@ Format:
 
 ### Types
 
-| Type | Khi nào dùng |
-|---|---|
-| `feat` | Thêm feature mới (user-facing) |
-| `fix` | Fix bug |
-| `docs` | Sửa documentation (README, comment, ADR) |
-| `style` | Format code, không đổi logic (ruff format) |
-| `refactor` | Refactor code, không đổi behavior |
-| `test` | Thêm/sửa test |
-| `chore` | Maintenance (update deps, config) |
-| `ci` | Sửa CI/CD (.github/workflows) |
-| `perf` | Cải thiện performance |
-| `build` | Sửa build system (Dockerfile, pyproject.toml) |
-| `revert` | Revert commit cũ |
+| Type       | Khi nào dùng                                  |
+| ---------- | --------------------------------------------- |
+| `feat`     | Thêm feature mới (user-facing)                |
+| `fix`      | Fix bug                                       |
+| `docs`     | Sửa documentation (README, comment, ADR)      |
+| `style`    | Format code, không đổi logic (ruff format)    |
+| `refactor` | Refactor code, không đổi behavior             |
+| `test`     | Thêm/sửa test                                 |
+| `chore`    | Maintenance (update deps, config)             |
+| `ci`       | Sửa CI/CD (.github/workflows)                 |
+| `perf`     | Cải thiện performance                         |
+| `build`    | Sửa build system (Dockerfile, pyproject.toml) |
+| `revert`   | Revert commit cũ                              |
 
 ### Scope (optional)
 
@@ -125,4 +125,36 @@ git commit -m "feat(auth): add login endpoint with JWT"
 git push origin feat/auth-login
 
 # CI sẽ chạy. Nếu pass, merge.
+```
+
+---
+
+## Sub-slice workflow (chuẩn cho mọi feature)
+
+```bash
+# 1. Sync main
+git checkout main && git pull origin main
+
+# 2. Tạo branch
+git checkout -b feat/<scope>-<description>
+
+# 3. Code + commit (commit nhỏ, thường xuyên)
+git add <files>
+git commit -m "feat(<scope>): <description>"
+
+# 4. Push
+git push -u origin feat/<scope>-<description>
+
+# 5. Tạo PR
+gh pr create --title "feat(<scope>): <description>" --body "..."
+# Hoặc qua GitHub UI
+
+# 6. Đợi CI pass
+
+# 7. Merge (squash)
+gh pr merge --squash --delete-branch
+
+# 8. Sync main + cleanup
+git checkout main && git pull origin main
+git branch -d feat/<scope>-<description>
 ```

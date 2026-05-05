@@ -31,6 +31,9 @@ python -c "import secrets; print(secrets.token_urlsafe(64))"
 ### 2. Install deps + git hooks
 
 ```bash
+uv python install 3.12
+# 3. Tạo venv mới với Python 3.12
+uv venv --python 3.12
 uv sync                # cài dep + tạo uv.lock
 make hooks             # install pre-commit hooks
 ```
@@ -42,6 +45,7 @@ make up
 ```
 
 Stack gồm 3 service:
+
 - `app` (FastAPI) — http://localhost:8000
 - `db` (Postgres 16) — port 5432
 - `redis` (Redis 7) — port 6379
@@ -53,12 +57,13 @@ curl http://localhost:8000/health
 ```
 
 Output expected:
+
 ```json
 {
   "status": "healthy",
   "version": "0.1.0",
   "env": "development",
-  "checks": {"database": "up", "redis": "up"}
+  "checks": { "database": "up", "redis": "up" }
 }
 ```
 
@@ -107,9 +112,9 @@ tests/               # unit / integration / concurrency
 
 ## SDLC
 
-| Phase | Status |
-|---|---|
-| 1. CLARIFY | ✅ |
-| 2. DESIGN | ✅ |
-| 3. BUILD | ⏳ In progress |
-| 4. HARDEN | — |
+| Phase      | Status         |
+| ---------- | -------------- |
+| 1. CLARIFY | ✅             |
+| 2. DESIGN  | ✅             |
+| 3. BUILD   | ⏳ In progress |
+| 4. HARDEN  | —              |

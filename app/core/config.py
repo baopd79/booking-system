@@ -70,7 +70,6 @@ class Settings(BaseSettings):
     seed_tenant_name: str = "Default Tenant"
 
     @computed_field
-    @property
     def is_production(self) -> bool:
         return self.app_env == "production"
 

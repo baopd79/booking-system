@@ -5,6 +5,9 @@ Redis client — dùng cho:
 - Distributed lock cho reconciliation job
 """
 
+from collections.abc import Awaitable
+from typing import cast
+
 import redis.asyncio as redis
 
 from app.core.config import settings
@@ -23,9 +26,8 @@ async def get_redis() -> redis.Redis:
 
 
 async def check_redis_health() -> bool:
-    """Health check — gọi từ /health endpoint."""
     try:
-        await redis_client.ping()
+        await cast(Awaitable[bool], redis_client.ping())
         return True
     except Exception:
         return False

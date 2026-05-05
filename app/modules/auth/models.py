@@ -91,8 +91,11 @@ class EmailVerificationToken(CreatedAtMixin, SQLModel, table=True):
     # SHA256 hex = 64 chars
     token_hash: str = Field(nullable=False, max_length=64, unique=True, index=True)
 
-    expires_at: datetime = Field(sa_type=DateTime(timezone=True), nullable=False)
-    used_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    used_at: datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
 
 
 # ===== RefreshToken =====
@@ -117,8 +120,11 @@ class RefreshToken(CreatedAtMixin, SQLModel, table=True):
     user_id: UUID = Field(foreign_key="users.id", nullable=False, index=True)
     token_hash: str = Field(nullable=False, max_length=64, unique=True, index=True)
 
-    expires_at: datetime = Field(sa_type=DateTime(timezone=True), nullable=False)
-    revoked_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    revoked_at: datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
 
     # Audit info — track session để debug khi cần revoke
     user_agent: str | None = Field(default=None, max_length=500)

@@ -1,5 +1,5 @@
 """
-Alembic env — Phase 3 sẽ import models từ modules.
+Alembic env — apply naming convention TRƯỚC khi import models.
 MVP: dùng sync driver (psycopg2) cho migration cho đơn giản.
 """
 
@@ -9,22 +9,33 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from app.core.config import settings
+from app.core.db_metadata import NAMING_CONVENTION
 
 # Alembic config object
 config = context.config
-
-# Override URL từ settings (sync URL cho psycopg2)
 config.set_main_option("sqlalchemy.url", str(settings.database_url_sync))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# ===== Import metadata =====
-# Phase 3: import từng module models, ví dụ:
-# from app.modules.auth.models import *  # noqa
-# from app.modules.facility.models import *  # noqa
-# Hiện tại chưa có model nào, target_metadata = None
-target_metadata = None
+# ===== Apply naming convention TRƯỚC khi import models =====
+# Lý do: SQLModel.metadata phải có convention SẴN khi class model được parse,
+# nếu không các constraint sẽ lấy tên random.
+from sqlmodel import SQLModel  # noqa: E402
+
+SQLModel.metadata.naming_convention = NAMING_CONVENTION  # type: ignore[assignment]
+
+# ===== Import models =====
+# Mỗi khi thêm module mới có model → thêm import vào đây.
+from app.modules.auth.models import *  # noqa: F401, F403, E402
+
+# Future modules (uncomment khi đến slice tương ứng):
+# from app.modules.facility.models import *  # noqa: F401, F403, E402
+# from app.modules.booking.models import *  # noqa: F401, F403, E402
+# from app.modules.payment.models import *  # noqa: F401, F403, E402
+# from app.modules.notification.models import *  # noqa: F401, F403, E402
+
+target_metadata = SQLModel.metadata
 
 
 def run_migrations_offline() -> None:

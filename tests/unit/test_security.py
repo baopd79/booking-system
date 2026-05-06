@@ -101,6 +101,23 @@ class TestJWT:
         # Đảm bảo KHÔNG có claim thừa (theo quyết định minimum claims)
         assert set(payload.keys()) == {"sub", "exp", "iat", "type"}
 
+    def test_access_token_can_include_api_contract_claims(self):
+        """Auth service có thể thêm tenant_id/role để phục vụ RBAC."""
+        user_id = uuid4()
+        tenant_id = uuid4()
+        token = create_access_token(user_id, tenant_id=tenant_id, role="owner")
+
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+        )
+
+        assert payload["sub"] == str(user_id)
+        assert payload["user_id"] == str(user_id)
+        assert payload["tenant_id"] == str(tenant_id)
+        assert payload["role"] == "owner"
+
     def test_refresh_token_has_type_refresh(self):
         token = create_refresh_token(uuid4())
 

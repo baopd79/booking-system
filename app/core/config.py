@@ -10,6 +10,7 @@ Lý do dùng pydantic-settings:
 
 from functools import lru_cache
 from typing import Literal
+from uuid import UUID
 
 from pydantic import Field, PostgresDsn, RedisDsn, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -67,6 +68,7 @@ class Settings(BaseSettings):
     # ===== Owner seed =====
     seed_owner_email: str = "owner@booking.local"
     seed_owner_password: str = "changeme123"
+    seed_tenant_id: UUID = UUID("00000000-0000-0000-0000-000000000001")
     seed_tenant_name: str = "Default Tenant"
 
     @computed_field

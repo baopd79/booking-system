@@ -18,6 +18,7 @@ from app.core.config import settings
 from app.core.database import engine
 from app.core.exceptions import AppError
 from app.core.redis import check_redis_health, redis_client
+from app.modules.auth.routes import router as auth_router
 
 
 @asynccontextmanager
@@ -113,6 +114,5 @@ async def root():
     return {"message": "Booking System API", "docs": "/docs"}
 
 
-# ===== Module routers — Phase 3 sẽ thêm dần =====
-# from app.modules.auth.routes import router as auth_router
-# app.include_router(auth_router, prefix="/auth", tags=["auth"])
+# ===== Module routers =====
+app.include_router(auth_router)

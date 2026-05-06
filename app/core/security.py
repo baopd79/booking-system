@@ -79,6 +79,8 @@ def _create_token(
     user_id: UUID,
     token_type: TokenType,
     expires_in: timedelta,
+    tenant_id: UUID | None = None,
+    role: str | None = None,
 ) -> str:
     """
     Internal helper: tạo JWT với minimum claims.
@@ -88,8 +90,7 @@ def _create_token(
     - exp: expiration timestamp (UTC seconds)
     - iat: issued at timestamp
     - type: access | refresh
-
-    Không include email/role/tenant_id (xem ADR: minimum claims).
+    - tenant_id, role: optional để auth service đi đúng API contract.
     """
     now = datetime.now(UTC)
     payload: dict[str, Any] = {
@@ -98,24 +99,41 @@ def _create_token(
         "exp": int((now + expires_in).timestamp()),
         "type": token_type.value,
     }
+    if tenant_id is not None:
+        payload["user_id"] = str(user_id)
+        payload["tenant_id"] = str(tenant_id)
+    if role is not None:
+        payload["role"] = role
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
-def create_access_token(user_id: UUID) -> str:
+def create_access_token(
+    user_id: UUID,
+    tenant_id: UUID | None = None,
+    role: str | None = None,
+) -> str:
     """Access token: 15 phút TTL (cấu hình ở settings)."""
     return _create_token(
         user_id=user_id,
         token_type=TokenType.ACCESS,
         expires_in=timedelta(minutes=settings.jwt_access_token_expire_minutes),
+        tenant_id=tenant_id,
+        role=role,
     )
 
 
-def create_refresh_token(user_id: UUID) -> str:
+def create_refresh_token(
+    user_id: UUID,
+    tenant_id: UUID | None = None,
+    role: str | None = None,
+) -> str:
     """Refresh token: 7 ngày TTL (cấu hình ở settings)."""
     return _create_token(
         user_id=user_id,
         token_type=TokenType.REFRESH,
         expires_in=timedelta(days=settings.jwt_refresh_token_expire_days),
+        tenant_id=tenant_id,
+        role=role,
     )
 
 

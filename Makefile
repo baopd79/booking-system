@@ -1,4 +1,4 @@
-.PHONY: help install hooks up down logs shell db-shell migrate migration test lint format clean
+.PHONY: help install hooks up down logs shell db-shell migrate migration seed-owner test lint format clean
 
 help:
 	@echo "Available commands:"
@@ -11,6 +11,7 @@ help:
 	@echo "  make db-shell      - psql vào DB"
 	@echo "  make migrate       - Apply migrations"
 	@echo "  make migration m=  - Create migration: make migration m='add users'"
+	@echo "  make seed-owner    - Seed/update owner account"
 	@echo "  make test          - Run pytest"
 	@echo "  make lint          - Ruff check + mypy"
 	@echo "  make format        - Ruff format"
@@ -56,6 +57,9 @@ migrate:
 migration:
 	@if [ -z "$(m)" ]; then echo "❌ Usage: make migration m='message'"; exit 1; fi
 	docker compose exec app alembic revision --autogenerate -m "$(m)"
+
+seed-owner:
+	docker compose exec app python -m app.modules.auth.seed_owner
 
 test:
 	docker compose exec app pytest -v

@@ -15,12 +15,12 @@ Note về Tenant:
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, Column, DateTime, String
+from sqlalchemy import JSON, CheckConstraint, Column, DateTime, String
 from sqlmodel import Field, SQLModel
 
 from app.core.db_metadata import enum_check_constraint
 from app.core.models import CreatedAtMixin, TimestampMixin
-from app.modules.auth.enums import UserRole, UserStatus
+from app.modules.auth.enums import AuditOutcome, UserRole, UserStatus
 
 
 # ===== User =====
@@ -129,3 +129,28 @@ class RefreshToken(CreatedAtMixin, SQLModel, table=True):
     # Audit info — track session để debug khi cần revoke
     user_agent: str | None = Field(default=None, max_length=500)
     ip: str | None = Field(default=None, max_length=45)  # IPv6 max length
+
+
+# ===== AuditLog =====
+class AuditLog(CreatedAtMixin, SQLModel, table=True):
+    """
+    Log auth events quan trọng: login success/fail, logout, refresh token rotation.
+
+    user_id nullable vì login fail có thể xảy ra trước khi xác định được user.
+    """
+
+    __tablename__ = "audit_logs"
+    __table_args__ = (
+        CheckConstraint(enum_check_constraint("outcome", AuditOutcome), name="outcome"),
+    )
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    user_id: UUID | None = Field(default=None, foreign_key="users.id", index=True)
+    event_type: str = Field(nullable=False, max_length=100)
+    ip: str | None = Field(default=None, max_length=45)
+    user_agent: str | None = Field(default=None, max_length=500)
+    outcome: AuditOutcome = Field(sa_column=Column(String(20), nullable=False))
+    audit_metadata: dict | None = Field(
+        default=None,
+        sa_column=Column("metadata", JSON, nullable=True),
+    )

@@ -19,3 +19,8 @@ class UserStatus(StrEnum):
     UNVERIFIED = "unverified"
     VERIFIED = "verified"
     SUSPENDED = "suspended"
+
+
+class AuditOutcome(StrEnum):
+    SUCCESS = "success"
+    FAILED = "failed"
